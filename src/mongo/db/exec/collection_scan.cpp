@@ -69,6 +69,11 @@ CollectionScan::CollectionScan(OperationContext* txn,
 }
 
 PlanStage::StageState CollectionScan::work(WorkingSetID* out) {
+    if (getOpCtx()->isHarvested()) {
+        _commonStats.isEOF = true;
+        return PlanStage::IS_EOF;
+    }
+
     ++_commonStats.works;
 
     // Adds the amount of time taken by work() to executionTimeMillis.

@@ -102,6 +102,10 @@ bool SortStage::isEOF() {
 }
 
 PlanStage::StageState SortStage::work(WorkingSetID* out) {
+    if (getOpCtx()->isHarvested()) {
+        return PlanStage::IS_EOF;
+    }
+
     ++_commonStats.works;
 
     // Adds the amount of time taken by work() to executionTimeMillis.

@@ -122,6 +122,13 @@ boost::optional<IndexKeyEntry> IndexScan::initIndexScan() {
 }
 
 PlanStage::StageState IndexScan::work(WorkingSetID* out) {
+    if (getOpCtx()->isHarvested()) {
+        _scanState = HIT_END;
+        _commonStats.isEOF = true;
+        _indexCursor.reset();
+        return PlanStage::IS_EOF;
+    }
+
     ++_commonStats.works;
 
     // Adds the amount of time taken by work() to executionTimeMillis.

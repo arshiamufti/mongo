@@ -29,6 +29,7 @@
 #pragma once
 
 #include <memory>
+#include <mongo/db/curop.h>
 
 #include "mongo/db/exec/collection_scan_common.h"
 #include "mongo/db/exec/plan_stage.h"

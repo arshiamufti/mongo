@@ -193,6 +193,10 @@ public:
      */
     void markKilled(ErrorCodes::Error killCode = ErrorCodes::Interrupted);
 
+    void markHarvested();
+
+    bool isHarvested();
+
     /**
      * Returns the code passed to markKilled if this operation context has been killed previously
      * or ErrorCodes::OK otherwise.
@@ -214,6 +218,8 @@ protected:
     OperationContext(Client* client, unsigned int opId, Locker* locker);
 
     RecoveryUnitState _ruState = kNotInUnitOfWork;
+
+    bool _harvested = false;
 
 private:
     friend class WriteUnitOfWork;

@@ -31,6 +31,7 @@
 #include "mongo/db/client.h"
 #include "mongo/db/operation_context.h"
 
+#include "curop.h"
 #include "mongo/util/assert_util.h"
 
 namespace mongo {
@@ -49,6 +50,14 @@ Client* OperationContext::getClient() const {
 void OperationContext::markKilled(ErrorCodes::Error killCode) {
     invariant(killCode != ErrorCodes::OK);
     _killCode.compareAndSwap(ErrorCodes::OK, killCode);
+}
+
+bool OperationContext::isHarvested() {
+    return _harvested;
+}
+
+void OperationContext::markHarvested() {
+    _harvested = true;
 }
 
 ErrorCodes::Error OperationContext::getKillStatus() const {

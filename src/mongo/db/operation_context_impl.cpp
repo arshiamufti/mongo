@@ -183,8 +183,7 @@ Status OperationContextImpl::checkForInterruptNoAssert() {
 
     CurOp* curOp = CurOp::get(this);
     if (curOp->maxTimeHasExpired()) {
-        markKilled();
-        return Status(ErrorCodes::ExceededTimeLimit, "operation exceeded time limit");
+        markHarvested();
     }
 
     MONGO_FAIL_POINT_BLOCK(checkForInterruptFail, scopedFailPoint) {
