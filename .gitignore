@@ -148,7 +148,7 @@ src/third_party/v8/src/libraries.cc
 
 # Idea CLion project artifacts
 .idea
-CMakeLists.txt
+cmake-build-debug/
 
 # XCode projects
 .xcworkspace
