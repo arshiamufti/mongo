@@ -102,6 +102,12 @@ bool IDHackStage::isEOF() {
 }
 
 PlanStage::StageState IDHackStage::work(WorkingSetID* out) {
+    if (getOpCtx()->isHarvested()) {
+        _commonStats.isEOF = true;
+        _done = true;
+        return PlanStage::IS_EOF;
+    }
+
     ++_commonStats.works;
 
     // Adds the amount of time taken by work() to executionTimeMillis.

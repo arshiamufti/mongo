@@ -68,6 +68,11 @@ DistinctScan::DistinctScan(OperationContext* txn,
 }
 
 PlanStage::StageState DistinctScan::work(WorkingSetID* out) {
+    if (getOpCtx()->isHarvested()) {
+        _commonStats.isEOF = true;
+        return PlanStage::IS_EOF;
+    }
+
     ++_commonStats.works;
     if (_commonStats.isEOF)
         return PlanStage::IS_EOF;
