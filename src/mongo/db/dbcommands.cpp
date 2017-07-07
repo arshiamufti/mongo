@@ -1470,6 +1470,7 @@ bool Command::run(OperationContext* txn,
 
     // TODO: remove queryOptions parameter from command's run method.
     bool result = this->run(txn, db, cmd, 0, errmsg, inPlaceReplyBob);
+    inPlaceReplyBob.append("isPartial", txn->isHarvested());
     appendCommandStatus(inPlaceReplyBob, result, errmsg);
     inPlaceReplyBob.doneFast();
 
