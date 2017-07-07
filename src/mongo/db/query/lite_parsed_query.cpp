@@ -259,12 +259,14 @@ StatusWith<unique_ptr<LiteParsedQuery>> LiteParsedQuery::makeFromFindCommand(Nam
 
             pq->_maxScan = maxScan;
         } else if (str::equals(fieldName, cmdOptionMaxTimeMS)) {
-            StatusWith<int> maxTimeMS = parseMaxTimeMS(el);
-            if (!maxTimeMS.isOK()) {
-                return maxTimeMS.getStatus();
+            StatusWith<MaxTimeOptions> maxTimeMSStatus = parseMaxTimeMS(el);
+            if (!maxTimeMSStatus.isOK()) {
+                return maxTimeMSStatus.getStatus();
             }
 
-            pq->_maxTimeMS = maxTimeMS.getValue();
+            MaxTimeOptions& maxTimeOptions = maxTimeMSStatus.getValue();
+            pq->_maxTimeMS = maxTimeOptions.milliseconds;
+            pq->_harvest = maxTimeOptions.harvest;
         } else if (str::equals(fieldName, kMinField)) {
             Status status = checkFieldType(el, Object);
             if (!status.isOK()) {
@@ -671,7 +673,43 @@ Status LiteParsedQuery::validate() const {
 }
 
 // static
-StatusWith<int> LiteParsedQuery::parseMaxTimeMS(BSONElement maxTimeMSElt) {
+StatusWith<MaxTimeOptions> LiteParsedQuery::parseMaxTimeMS(BSONElement maxTimeMSElt) {
+    if (maxTimeMSElt.isABSONObj()) {
+        return LiteParsedQuery::parseMaxTimeMSObject(maxTimeMSElt);
+    } else {
+        StatusWith<int> status = LiteParsedQuery::parseMaxTimeMSInt(maxTimeMSElt);
+        if (!status.isOK()) {
+            return StatusWith<MaxTimeOptions>(status.getStatus());
+        } else {
+            return StatusWith<MaxTimeOptions>(MaxTimeOptions{status.getValue(), false});
+        }
+    }
+}
+
+// static
+StatusWith<MaxTimeOptions> LiteParsedQuery::parseMaxTimeMSObject(BSONElement maxTimeMSElt) {
+    BSONObj obj = maxTimeMSElt.Obj();
+    if (!obj.hasField("milliseconds") || !obj.hasField("harvest")) {
+        return StatusWith<MaxTimeOptions>(
+            ErrorCodes::BadValue,
+            (StringBuilder() << maxTimeMSElt.fieldNameStringData()
+                             << " must contain a \"milliseconds\" and \"harvest\" field").str());
+    }
+
+    int milliseconds;
+    StatusWith<int> status = LiteParsedQuery::parseMaxTimeMSInt(obj.getField("milliseconds"));
+    if (!status.isOK()) {
+        return StatusWith<MaxTimeOptions>(status.getStatus());
+    } else {
+        milliseconds = status.getValue();
+    }
+
+    bool harvest = obj.getField("harvest").trueValue();
+    return StatusWith<MaxTimeOptions>(MaxTimeOptions{milliseconds, harvest});
+}
+
+// static
+StatusWith<int> LiteParsedQuery::parseMaxTimeMSInt(BSONElement maxTimeMSElt) {
     if (!maxTimeMSElt.eoo() && !maxTimeMSElt.isNumber()) {
         return StatusWith<int>(
             ErrorCodes::BadValue,
@@ -689,6 +727,7 @@ StatusWith<int> LiteParsedQuery::parseMaxTimeMS(BSONElement maxTimeMSElt) {
                                (StringBuilder() << maxTimeMSElt.fieldNameStringData()
                                                 << " has non-integral value").str());
     }
+
     return StatusWith<int>(static_cast<int>(maxTimeMSLongLong));
 }
 
@@ -921,11 +960,13 @@ Status LiteParsedQuery::initFullQuery(const BSONObj& top) {
                     addShowRecordIdMetaProj();
                 }
             } else if (str::equals("maxTimeMS", name)) {
-                StatusWith<int> maxTimeMS = parseMaxTimeMS(e);
-                if (!maxTimeMS.isOK()) {
-                    return maxTimeMS.getStatus();
+                StatusWith<MaxTimeOptions> maxTimeMSStatus = parseMaxTimeMS(e);
+                if (!maxTimeMSStatus.isOK()) {
+                    return maxTimeMSStatus.getStatus();
                 }
-                _maxTimeMS = maxTimeMS.getValue();
+                MaxTimeOptions& maxTimeOptions = maxTimeMSStatus.getValue();
+                _maxTimeMS = maxTimeOptions.milliseconds;
+                _harvest = maxTimeOptions.harvest;
             }
         }
     }

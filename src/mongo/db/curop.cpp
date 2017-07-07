@@ -350,8 +350,9 @@ void CurOp::reportState(BSONObjBuilder* builder) {
     builder->append("numYields", _numYields);
 }
 
-void CurOp::setMaxTimeMicros(uint64_t maxTimeMicros) {
+void CurOp::setMaxTimeMicros(uint64_t maxTimeMicros, bool harvest) {
     _maxTimeMicros = maxTimeMicros;
+    _harvest = harvest;
 
     if (_maxTimeMicros == 0) {
         // 0 is "allow to run indefinitely".
@@ -383,6 +384,10 @@ bool CurOp::maxTimeHasExpired() {
 
 uint64_t CurOp::getRemainingMaxTimeMicros() const {
     return _maxTimeTracker.getRemainingMicros();
+}
+
+bool CurOp::getHarvest() const {
+    return _harvest;
 }
 
 void CurOp::MaxTimeTracker::setTimeLimit(uint64_t startEpochMicros, uint64_t durationMicros) {

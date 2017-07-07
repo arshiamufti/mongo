@@ -283,9 +283,11 @@ public:
             // applying it to this getMore.
             if (isCursorAwaitData(cursor)) {
                 Seconds awaitDataTimeout(1);
-                CurOp::get(txn)->setMaxTimeMicros(durationCount<Microseconds>(awaitDataTimeout));
+                CurOp::get(txn)
+                    ->setMaxTimeMicros(durationCount<Microseconds>(awaitDataTimeout), false);
             } else {
-                CurOp::get(txn)->setMaxTimeMicros(cursor->getLeftoverMaxTimeMicros());
+                CurOp::get(txn)
+                    ->setMaxTimeMicros(cursor->getLeftoverMaxTimeMicros(), cursor->getHarvest());
             }
         }
         txn->checkForInterrupt();  // May trigger maxTimeAlwaysTimeOut fail point.
@@ -393,7 +395,8 @@ public:
             // from a previous find, then don't roll remaining micros over to the next
             // getMore.
             if (!hasOwnMaxTime) {
-                cursor->setLeftoverMaxTimeMicros(CurOp::get(txn)->getRemainingMaxTimeMicros());
+                CurOp* curOp = CurOp::get(txn);
+                cursor->setLeftoverMaxTime(curOp->getRemainingMaxTimeMicros(), curOp->getHarvest());
             }
 
             cursor->incPos(numResults);

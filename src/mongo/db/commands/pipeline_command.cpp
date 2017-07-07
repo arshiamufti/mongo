@@ -127,7 +127,8 @@ static bool handleCursorCommand(OperationContext* txn,
     if (cursor) {
         // If a time limit was set on the pipeline, remaining time is "rolled over" to the
         // cursor (for use by future getmore ops).
-        cursor->setLeftoverMaxTimeMicros(CurOp::get(txn)->getRemainingMaxTimeMicros());
+        CurOp* curOp = CurOp::get(txn);
+        cursor->setLeftoverMaxTime(curOp->getRemainingMaxTimeMicros(), curOp->getHarvest());
 
         CurOp::get(txn)->debug().cursorid = cursor->cursorid();
 

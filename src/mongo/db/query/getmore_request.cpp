@@ -140,8 +140,8 @@ StatusWith<GetMoreRequest> GetMoreRequest::parseFromBSON(const std::string& dbna
                 return maxAwaitDataTime.getStatus();
             }
 
-            if (maxAwaitDataTime.getValue()) {
-                awaitDataTimeout = Milliseconds(maxAwaitDataTime.getValue());
+            if (maxAwaitDataTime.getValue().milliseconds) {
+                awaitDataTimeout = Milliseconds(maxAwaitDataTime.getValue().milliseconds);
             }
         } else if (str::equals(fieldName, kTermField)) {
             if (el.type() != BSONType::NumberLong) {

@@ -365,7 +365,8 @@ public:
             cursorExec->saveState();
             cursorExec->detachFromOperationContext();
 
-            cursor->setLeftoverMaxTimeMicros(CurOp::get(txn)->getRemainingMaxTimeMicros());
+            CurOp* curOp = CurOp::get(txn);
+            cursor->setLeftoverMaxTime(curOp->getRemainingMaxTimeMicros(), curOp->getHarvest());
             cursor->setPos(numResults);
 
             // Fill out curop based on the results.

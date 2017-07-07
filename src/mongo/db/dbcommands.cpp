@@ -1285,14 +1285,18 @@ void Command::execCommand(OperationContext* txn,
         }
 
         // Handle command option maxTimeMS.
-        int maxTimeMS = uassertStatusOK(
+        StatusWith<MaxTimeOptions> maxTimeMSStatus = uassertStatusOK(
             LiteParsedQuery::parseMaxTimeMS(extractedFields[kCmdOptionMaxTimeMSField]));
+
+        MaxTimeOptions& maxTimeOptions = maxTimeMSStatus.getValue();
 
         uassert(ErrorCodes::InvalidOptions,
                 "no such command option $maxTimeMs; use maxTimeMS instead",
                 extractedFields[kQueryOptionMaxTimeMSField].eoo());
 
-        CurOp::get(txn)->setMaxTimeMicros(static_cast<unsigned long long>(maxTimeMS) * 1000);
+        CurOp::get(txn)
+            ->setMaxTimeMicros(static_cast<unsigned long long>(maxTimeOptions.milliseconds) * 1000,
+                               maxTimeOptions.harvest);
 
         // Operations are only versioned against the primary. We also make sure not to redo shard
         // version handling if this command was issued via the direct client.

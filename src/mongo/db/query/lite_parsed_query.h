@@ -36,6 +36,11 @@
 
 namespace mongo {
 
+struct MaxTimeOptions {
+    int milliseconds;
+    bool harvest;
+};
+
 class QueryMessage;
 class Status;
 template <typename T>
@@ -121,7 +126,7 @@ public:
     /**
      * Parses maxTimeMS from the BSONElement containing its value.
      */
-    static StatusWith<int> parseMaxTimeMS(BSONElement maxTimeMSElt);
+    static StatusWith<MaxTimeOptions> parseMaxTimeMS(BSONElement maxTimeMSElt);
 
     /**
      * Helper function to identify text search sort key
@@ -228,6 +233,9 @@ public:
     int getMaxTimeMS() const {
         return _maxTimeMS;
     }
+    bool getHarvest() const {
+        return _harvest;
+    }
 
     const BSONObj& getMin() const {
         return _min;
@@ -309,6 +317,9 @@ private:
 
     Status initFullQuery(const BSONObj& top);
 
+    static StatusWith<int> parseMaxTimeMSInt(BSONElement maxTimeMSElt);
+    static StatusWith<MaxTimeOptions> parseMaxTimeMSObject(BSONElement maxTimeMSElt);
+
     /**
      * Updates the projection object with a $meta projection for the returnKey option.
      */
@@ -368,6 +379,7 @@ private:
 
     int _maxScan = 0;
     int _maxTimeMS = 0;
+    bool _harvest = false;
 
     BSONObj _min;
     BSONObj _max;

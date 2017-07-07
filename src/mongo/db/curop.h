@@ -347,7 +347,7 @@ public:
      * Sets the amount of time operation this should be allowed to run, units of microseconds.
      * The special value 0 is "allow to run indefinitely".
      */
-    void setMaxTimeMicros(uint64_t maxTimeMicros);
+    void setMaxTimeMicros(uint64_t maxTimeMicros, bool harvest);
 
     /**
      * Returns true if a time limit has been set on this operation, and false otherwise.
@@ -368,6 +368,7 @@ public:
      * since an accurate measure of remaining time needs to be calculated.
      */
     uint64_t getRemainingMaxTimeMicros() const;
+    bool getHarvest() const;
 
     //
     // Methods for getting/setting elapsed time. Note that the observed elapsed time may be
@@ -524,6 +525,8 @@ private:
 
     // Time limit for this operation.  0 if the operation has no time limit.
     uint64_t _maxTimeMicros{0u};
+
+    bool _harvest;
 
     std::string _planSummary;
 

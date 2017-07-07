@@ -138,8 +138,13 @@ public:
     uint64_t getLeftoverMaxTimeMicros() const {
         return _leftoverMaxTimeMicros;
     }
-    void setLeftoverMaxTimeMicros(uint64_t leftoverMaxTimeMicros) {
+    bool getHarvest() const {
+        return _harvest;
+    }
+
+    void setLeftoverMaxTime(uint64_t leftoverMaxTimeMicros, bool harvest) {
         _leftoverMaxTimeMicros = leftoverMaxTimeMicros;
+        _harvest = harvest;
     }
 
     //
@@ -250,6 +255,7 @@ private:
 
     // TODO: Document.
     uint64_t _leftoverMaxTimeMicros;
+    bool _harvest;
 
     //
     // The underlying execution machinery.
